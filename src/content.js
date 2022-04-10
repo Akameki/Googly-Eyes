@@ -4,6 +4,16 @@ const detectionOptions = {
 };
 
 const avg = (arr) => arr.reduce((prev, curr) => prev + curr, 0) / arr.length;
+const minMax = (arr) => {
+  const arrX = arr.map(item => item._x);
+  const arrY = arr.map(item => item._y);
+  minX = Math.min(...arrX); maxX = Math.max(...arrX);
+  minY = Math.min(...arrY); maxY = Math.max(...arrY);
+  return {
+    minX, maxX, minY, maxY
+  }
+};
+// const getHeight = (width) => width * leftEyeImage.naturalHeight / leftEyeImage.naturalWidth;
 
 const faceapi = ml5.faceApi(detectionOptions, modelLoaded);
 
@@ -36,7 +46,8 @@ function modelLoaded() {
         document.body.appendChild(canvas);
         ctx = canvas.getContext("2d");
         // console.log(results);
-        results.forEach(result => drawEyes(result.parts));
+        results.forEach(result => overlayEye(result.parts));
+        // results.forEach(result => drawEyes(result.parts));
       }
     });
   });
@@ -81,4 +92,20 @@ function cumulativeOffset(element) {
     top: top,
     left: left
   };
+}
+
+function overlayEye({leftEye,rightEye}){
+  console.log("overlaying some eyes");
+  function doIt(eye){
+    const minMaxEyes = minMax(eye);
+    const eyeWidth = minMaxEyes.maxX - minMaxEyes.minX;
+    const eyeHeight = minMaxEyes.maxY - minMaxEyes.minY;
+    const eyeImage = new Image();
+    eyeImage.src = 'eye2.png';
+    eyeImage.width = eyeWidth + 'px';
+    const newX = minMaxEyes.minX+(eyeWidth/2); const newY = minMaxEyes.minY-(eyeHeight/2);
+    console.log(newY)
+    ctx.drawImage(eyeImage, minMaxEyes.minX, newY, eyeWidth*1.25, eyeWidth*1.25);
+  }
+  doIt(leftEye); doIt(rightEye);
 }
