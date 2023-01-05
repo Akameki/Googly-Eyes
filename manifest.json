@@ -2,11 +2,15 @@
     "name": "Googly Eyes",
     "description": "Add Googly Eyes to All Images on the Page",
     "version": "1.0",
-    "manifest_version": 2,
+    "manifest_version": 3,
     "content_scripts": [
         {
-          "matches": ["http://*/*", "https://*/*", "file://*/*"],
+          "matches": ["<all_urls>"],
           "js": ["src/ml5.min.js","src/content.js"]
         }
-    ]
+    ],
+    "web_accessible_resources": [{
+        "matches": ["<all_urls>"],
+        "resources": ["src/images/*.png"]
+    }]
 }

@@ -1,111 +1,133 @@
+
+console.log('ml5 version:', ml5.version);
+
+const eyeImg = new Image();
+eyeImg.src = chrome.runtime.getURL("src/images/eye.png");
+eyeImg.width = 50;
+eyeImg.height = 50;
+eyeImg.onload = () => console.log("eye image loaded");
+
 const detectionOptions = {
   withLandmarks: true,
   withDescriptors: false,
 };
-
-const avg = (arr) => arr.reduce((prev, curr) => prev + curr, 0) / arr.length;
-const minMax = (arr) => {
-  const arrX = arr.map(item => item._x);
-  const arrY = arr.map(item => item._y);
-  minX = Math.min(...arrX); maxX = Math.max(...arrX);
-  minY = Math.min(...arrY); maxY = Math.max(...arrY);
-  return {
-    minX, maxX, minY, maxY
-  }
-};
-// const getHeight = (width) => width * leftEyeImage.naturalHeight / leftEyeImage.naturalWidth;
-
 const faceapi = ml5.faceApi(detectionOptions, modelLoaded);
 
 function modelLoaded() {
-  console.log('Model Loaded!');
-  document.querySelectorAll('img').forEach(i => {
-    // get absolute position of image
-    const { top, left } = cumulativeOffset(i);
+  console.log('ml5 face model loaded!');
+  // process images already on page
+  document.querySelectorAll('img').forEach(detectAndDrawWhenVisible);
 
-    // create Image object
-    img = new Image();
-    img.crossOrigin = "anonymous";
-    img.src = i.src;
-    img.width = i.width;
-    img.height = i.height;
-
-    faceapi.detect(img, (err, results) => {
-      // debugger;
-      console.log("trying to detect a face(s)");
-      if (err) {
-        console.log("err", err);
-      } else if (results.length) {
-        const canvas = document.createElement("canvas");
-        canvas.width = i.width;
-        canvas.height = i.height;
-        canvas.style.position = 'absolute';
-        canvas.style.top = top + 'px';
-        canvas.style.left = left + 'px';
-        canvas.style.zIndex = '9999';
-        document.body.appendChild(canvas);
-        ctx = canvas.getContext("2d");
-        // console.log(results);
-        results.forEach(result => overlayEye(result.parts));
-        // results.forEach(result => drawEyes(result.parts));
-      }
+  // detect new images added to DOM
+  const observer = new MutationObserver((mutations) => {
+    mutations.filter(mut => mut.type === 'childList' && mut.addedNodes.length).forEach(mut => {
+      // console.log("DOM changed, checking for new images");
+      // console.log(mut.addedNodes);
+      mut.addedNodes.forEach(node => {
+        node.querySelectorAll('img').forEach(detectAndDrawWhenVisible);
+      });
     });
   });
+  observer.observe(document.body, { childList: true, subtree: true });
 }
+    
 
-function drawEyes({ leftEye, rightEye }) {
-  // console.log("drawing some eyes");
-  ctx.beginPath();
-  ctx.lineWidth = 2
-  ctx.strokeStyle = '#ff7755'
-  leftEye.forEach((item, idx) => {
-    if (idx === 0) {
-      ctx.moveTo(item._x, item._y);
-    } else {
-      ctx.lineTo(item._x, item._y);
+// if image is visible, call detectAndDraw, otherwise watch for visibility
+function detectAndDrawWhenVisible(img) {
+  if (isVisible(img)) {
+    detectAndDraw(img);
+  } else {
+    // add IntersectionObserver to draw when image comes into view, stop observing when image is drawn
+    const intersectionObserverOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
     }
-  });
-  ctx.closePath();
-  ctx.stroke();
-
-  ctx.beginPath();
-  rightEye.forEach((item, idx) => {
-    if (idx === 0) {
-      ctx.moveTo(item._x, item._y)
-    } else {
-      ctx.lineTo(item._x, item._y)
-    }
-  });
-  ctx.closePath();
-  ctx.stroke();
-}
-
-function cumulativeOffset(element) {
-  var top = 0, left = 0;
-  do {
-    top += element.offsetTop || 0;
-    left += element.offsetLeft || 0;
-    element = element.offsetParent;
-  } while (element);
-
-  return {
-    top: top,
-    left: left
-  };
-}
-
-function overlayEye({leftEye,rightEye}){
-  console.log("overlaying some eyes");
-  function doIt(eye){
-    const minMaxEyes = minMax(eye);
-    const eyeWidth = minMaxEyes.maxX - minMaxEyes.minX;
-    const eyeHeight = minMaxEyes.maxY - minMaxEyes.minY;
-    const eyeImage = new Image();
-    eyeImage.src = 'eye2.png';
-    eyeImage.width = eyeWidth + 'px';
-    const newX = minMaxEyes.minX+(eyeWidth/2); const newY = minMaxEyes.minY-(eyeHeight/2);
-    console.log(newY)
-    ctx.drawImage(eyeImage, minMaxEyes.minX, newY, eyeWidth*1.25, eyeWidth*1.25);
+    const observer = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          detectAndDraw(entry.target);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, intersectionObserverOptions);
+    observer.observe(img);
   }
-  doIt(leftEye); doIt(rightEye);
+}
+
+// use ml5 to detect faces in image, and draw eyes
+function detectAndDraw(img) {
+  img.crossOrigin = "anonymous";
+  faceapi.detect(img, (err, results) => {
+    if (err) {
+      console.log("[???] faceapi detect err", err);
+    } else if (results.length) {
+      console.log("faces detected!");
+      // create a canvas directly over image, zindex one greater
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      canvas.style.position = 'absolute';
+      canvas.style.top = img.offsetTop + 'px';
+      canvas.style.left = img.offsetLeft + 'px';
+      canvas.style.zIndex = img.style.zIndex + 1;
+      img.parentNode.appendChild(canvas);
+      // draw stuff.
+      let ctx = canvas.getContext("2d");
+      // ctx.lineWidth = 2;
+      // ctx.strokeStyle = '#ff7755';
+      // ctx.strokeRect(0, 0, img.width, img.height); // border image
+      // outline eyes
+      // results.forEach(result => {
+      //   outline(ctx, result.parts.leftEye);
+      //   outline(ctx, result.parts.rightEye);
+      // });
+      // put googly eye over each eye
+      results.forEach(result => {
+        draw(ctx, result.parts.leftEye, eyeImg);
+        draw(ctx, result.parts.rightEye, eyeImg);
+      });
+    } else {
+      console.log("no faces...");
+    }
+  });
+}
+
+// // creates an outline on a canvas given an array of point objects with .x and .y
+// function outline(ctx, points) {
+//   if (points.length < 2) return console.log("[???] points array too short");
+//   ctx.beginPath();
+//   ctx.moveTo(points[0].x, points[0].y);
+//   for (let i = 1; i < points.length; i++) {
+//     ctx.lineTo(points[i].x, points[i].y);
+//   }
+//   ctx.closePath();
+//   ctx.stroke();
+// }
+
+// draw an image from file on a canvas in middle of array of points
+function draw(ctx, points, img) {
+  // find center and bounds of points
+  let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
+  points.forEach(point => {
+    left = Math.min(left, point.x);
+    right = Math.max(right, point.x);
+    top = Math.min(top, point.y);
+    bottom = Math.max(bottom, point.y);
+  });
+  const midX = (left + right) / 2;
+  const midY = (top + bottom) / 2;
+  // scale image to fit 1.5x width
+  const width = (right - left) * 1.5;
+  const height = img.height * width / img.width;
+  
+  // draw scaled image, centered in middle of points
+  ctx.drawImage(img, midX - width / 2, midY - height / 2, width, height);
+}
+
+// returns true if element is visible in viewport
+function isVisible(elem) {
+  const rect = elem.getBoundingClientRect();
+  const viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
+  return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
 }
