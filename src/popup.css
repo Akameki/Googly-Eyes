@@ -1,6 +1,6 @@
 body {
-  width: 200px;
-  padding: 15px;
+  width: 250px;
+  padding: 50px 15px 5px 15px;
   font-family: 'Comic Sans MS';
   background-color: #ddd;
   /* animation: backgroundColorChange 10s infinite; */
@@ -17,8 +17,8 @@ body {
 .container {
   text-align: center;
   background: rgb(39, 39, 39);
-  border-radius: 80px;
-  padding: 30px 10px;
+  border-radius: 130px;
+  padding: 30px 30px 45px 30px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
   border: 3px solid #fff;
 }

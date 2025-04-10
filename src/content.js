@@ -60,7 +60,7 @@ function onModelLoaded() {
     
 // if image is visible, call detectAndDraw, otherwise watch for visibility with IntersectionObserver to call detectAndDraw
 async function watchVisbility(img) {
-  if (img.width < 100 || img.height < 100) {
+  if (img.width < 50 || img.height < 50) {
     return;
   }
   const intersectionObserverOptions = { root: null, rootMargin: '30px', threshold: 0.0 }
@@ -115,22 +115,6 @@ async function detectAndDraw(img) {
     }
   });
 }
-
-// function getEyeDimensions(points) {
-//   let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
-//   points.forEach(point => {
-//     left = Math.min(left, point.x);
-//     right = Math.max(right, point.x);
-//     top = Math.min(top, point.y);
-//     bottom = Math.max(bottom, point.y);
-//   });
-  
-//   return {
-//     left,
-//     midY: (top + bottom) / 2,
-//     width: (right - left) * 1.5,
-//   };
-// }
 
 function draw(ctx, eyeLocations) {
   for (let { left, midY, width } of eyeLocations) {
