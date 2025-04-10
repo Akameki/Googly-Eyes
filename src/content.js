@@ -12,7 +12,8 @@ Object.keys(eyes).forEach((eye, index) => {
 
 let currentEye = 'eye1';
 
-const faceapi = ml5.faceApi({ withLandmarks: true, withDescriptors: false }, onModelLoaded);
+// const faceapi = ml5.faceMesh({ withLandmarks: true, withDescriptors: false }, onModelLoaded);
+const faceapi = ml5.faceMesh({ maxFaces: 20 }, onModelLoaded);
 
 let enabled = false;
 const imageOverlays = []; // [ { canvas, context, eyeLocations } ]
@@ -81,7 +82,7 @@ async function detectAndDraw(img) {
   }
   img.crossOrigin = "anonymous";
 
-  faceapi.detect(img, (err, results) => {
+  faceapi.detect(img, (results, err) => {
     if (err) {
       console.log("[???] faceapi detect err", err);
     } else if (results.length) {
@@ -101,36 +102,39 @@ async function detectAndDraw(img) {
       let context = canvas.getContext("2d");
       const eyeLocations = [];
       results.forEach(result => {
-        eyeLocations.push(getEyeDimensions(result.parts.leftEye));
-        eyeLocations.push(getEyeDimensions(result.parts.rightEye));
+        eyeLocations.push( {left: result.leftEye.x, width: result.leftEye.width, midY: result.leftEye.centerY} );
+        eyeLocations.push( {left: result.rightEye.x, width: result.rightEye.width, midY: result.rightEye.centerY} );
       });
 
       imageOverlays.push({ canvas, context, eyeLocations });
       draw(context, eyeLocations);
     } else {
       // console.log("no faces...");
+      // put red outline around image
+      // img.style.outline = "20px solid red";
     }
   });
 }
 
-function getEyeDimensions(points) {
-  let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
-  points.forEach(point => {
-    left = Math.min(left, point.x);
-    right = Math.max(right, point.x);
-    top = Math.min(top, point.y);
-    bottom = Math.max(bottom, point.y);
-  });
+// function getEyeDimensions(points) {
+//   let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
+//   points.forEach(point => {
+//     left = Math.min(left, point.x);
+//     right = Math.max(right, point.x);
+//     top = Math.min(top, point.y);
+//     bottom = Math.max(bottom, point.y);
+//   });
   
-  return {
-    left,
-    midY: (top + bottom) / 2,
-    width: (right - left) * 1.5,
-  };
-}
+//   return {
+//     left,
+//     midY: (top + bottom) / 2,
+//     width: (right - left) * 1.5,
+//   };
+// }
 
 function draw(ctx, eyeLocations) {
   for (let { left, midY, width } of eyeLocations) {
+    width *= 2.0;
     // scale height to maintain aspect ratio
     const height = eyes[currentEye].height * width / eyes[currentEye].width;
     ctx.drawImage(eyes[currentEye], left, midY - height / 2, width, height);

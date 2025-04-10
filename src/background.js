@@ -3,7 +3,7 @@ chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     // chrome.action.setBadgeText({ tabId: message.tabId, text: "💤" });
     chrome.scripting.executeScript({
       target: { tabId: message.tabId },
-      files: ["src/ml5.min.js", "src/content.js"]
+      files: ["src/ml5updated.js", "src/content.js"]
     });
   } else if (message.action === "badgeOff") {
     // chrome.action.setBadgeText({ tabId: message.tabId, text: "💤" });
