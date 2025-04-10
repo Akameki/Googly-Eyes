@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>GOOGLY EYES!!!</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1 class="wobbly-title">👀 SELECT YOUR GOOGLIES 👀</h1>
+    
+    <div class="bouncy-eyes">
+      <img src="/src/images/eye1.png" class="preview-eye left-eye" alt="">
+      <img src="/src/images/eye2.png" class="preview-eye right-eye" alt="">
+    </div>
+    
+    <form id="eyeForm" class="silly-form">
+      <div class="option-group">
+        <label class="eye-option silly-option" data-value="none">
+          <input type="radio" name="eye" value="none" checked>
+          <span class="eye-label">🙈 No eyes (boring!)</span>
+        </label>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="option-group">
+        <label class="eye-option silly-option" data-value="eye1">
+          <input type="radio" name="eye" value="eye1">
+          <img src="/src/images/eye1.png" class="eye-preview" alt="Eye 1">
+          <span class="eye-label">Classic 🎪</span>
+        </label>
+        
+        <label class="eye-option silly-option" data-value="eye2">
+          <input type="radio" name="eye" value="eye2">
+          <img src="/src/images/eye2.png" class="eye-preview" alt="Eye 2">
+          <span class="eye-label">Cartoon 🎨</span>
+        </label>
+        
+        <label class="eye-option silly-option" data-value="eye3">
+          <input type="radio" name="eye" value="eye3">
+          <img src="/src/images/eye3.png" class="eye-preview" alt="Eye 3">
+          <span class="eye-label">Realistic 😵‍💫</span>
+        </label>
+      </div>
+    </form>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

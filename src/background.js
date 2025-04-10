@@ -1,23 +1,20 @@
-// start each tab with badge "off"
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.action === "enable") {
+    // chrome.action.setBadgeText({ tabId: message.tabId, text: "💤" });
+    chrome.scripting.executeScript({
+      target: { tabId: message.tabId },
+      files: ["src/ml5.min.js", "src/content.js"]
+    });
+  } else if (message.action === "badgeOff") {
+    // chrome.action.setBadgeText({ tabId: message.tabId, text: "💤" });
+  } else if (message.action === "badgeOn") {
+    // chrome.action.setBadgeText({ tabId: message.tabId, text: "👁️👁️" });
+  }
+});
 
-// when clicked, switch to "👁️👁️" and run face-api.min.js and content.js
-// when clicked while on, switch to "💤" and send message to content.js to pause
-// when clocked while "💤", switch to "👁️👁️" and send message to content.js to resume
-
-chrome.action.onClicked.addListener((tab) => {
-  chrome.action.getBadgeText({ tabId: tab.id }, function(result) {
-    if (result === "👁️👁️") {
-      chrome.action.setBadgeText({ tabId: tab.id, text: "💤" });
-      chrome.tabs.sendMessage(tab.id, {enabled: false});
-    } else if (result === "💤") {
-      chrome.action.setBadgeText({ tabId: tab.id, text: "👁️👁️" });
-      chrome.tabs.sendMessage(tab.id, {enabled: true});
-    } else { // first time
-      chrome.action.setBadgeText({ tabId: tab.id, text: "👁️👁️" });
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ["src/ml5.min.js", "src/content.js"]
-      });
-    }
-  });
+// Clear tab's selection when reloaded
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+  if (changeInfo.status === 'complete') {
+    chrome.storage.session.remove([`tab_${tabId}`]);
+  }
 });

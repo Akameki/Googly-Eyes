@@ -7,11 +7,12 @@
     "service_worker": "src/background.js"
   },
   "action": {
-    "default_icon": {}
+    "default_popup": "src/popup.html",
+    "default_icon": "src/images/eye1.png"
   },
   "web_accessible_resources": [{
       "matches": ["<all_urls>"],
       "resources": ["src/images/*.png"]
   }],
-  "permissions": ["activeTab", "scripting"]
+  "permissions": ["activeTab", "scripting", "storage"]
 }
